@@ -2,7 +2,7 @@
     {% load static %}
     <head>
         <meta charset="utf-8">
-        <title>Index</title>
+        <title>Sklep</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="{% static 'shop/style.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'shop/bootstrap.min.css' %}">
@@ -16,15 +16,16 @@
                     </div>
                     {% if products_list %}
                         {% for product in products_list %}
-                            <div class="media p-3 my-3 border border-primary rounded">
-                                <img class="mr-5 small-image" src="{{ product.image.url }}" alt="Zdjecie produktu" width="150px" height="150px"/>
+                        <a class="a-link" href="{% url 'shop:detail' product.id %}">
+                            <div class="media p-3 my-3 border border-primary rounded btn-outline-secondary">
+                                <img class="mr-5 small-image" src="{{ product.image.url }}" alt="Zdjecie produktu"/>
                                 <div class="media-body">
                                     <h5 class="mb-3 font-weight-bold">{{ product.name }}</h5>
                                     <div>Cena: {{ product.price }} zł</div>
                                     <div>Zostało sztuk: {{ product.quantity }}</div>
                                 </div>
-
                             </div>
+                        </a>
                         {% endfor %}
                     {% else %}
                         <div class="p-3 my-2 text-center text-white bg-danger rounded">

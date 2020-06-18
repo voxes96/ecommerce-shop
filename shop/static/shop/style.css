@@ -1,4 +1,13 @@
 .small-image {
-    width: 150px;
+    max-width: 150px;
     height: auto;
+}
+
+.big-image {
+    max-width: 300px;
+    height: auto;
+}
+
+a {
+  text-decoration: none !important;
 }
