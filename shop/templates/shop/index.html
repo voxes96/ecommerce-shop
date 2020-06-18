@@ -4,13 +4,33 @@
         <meta charset="utf-8">
         <title>Index</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="{% static 'shop/style.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'shop/bootstrap.min.css' %}">
     </head>
     <body>
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-8" style="background: lightgrey">
-                    Index html
+                <div class="col-lg-8 col-md-11" style="background: lightgrey">
+                    <div class="p-3 my-2 text-center text-white bg-primary rounded">
+                        <h1>Lista produktów:</h1>
+                    </div>
+                    {% if products_list %}
+                        {% for product in products_list %}
+                            <div class="media p-3 my-3 border border-primary rounded">
+                                <img class="mr-5 small-image" src="{{ product.image.url }}" alt="Zdjecie produktu" width="150px" height="150px"/>
+                                <div class="media-body">
+                                    <h5 class="mb-3 font-weight-bold">{{ product.name }}</h5>
+                                    <div>Cena: {{ product.price }} zł</div>
+                                    <div>Zostało sztuk: {{ product.quantity }}</div>
+                                </div>
+
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-3 my-2 text-center text-white bg-danger rounded">
+                            <h2>W tej chwili nie ma żadnych produktów do kupienia</h2>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
