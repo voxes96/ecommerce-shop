@@ -21,12 +21,14 @@ def detail(request, product_id):
 
 def basket(request):
     products = []
+    total_price = 0
     for bs in request.session['basket']:
         p = get_object_or_404(Product, pk=int(bs['item']))
-        p.quantity = int(bs['amount'])
-        p.price_sum = p.quantity * p.price
+        p.basket = int(bs['amount'])
+        p.price_sum = p.basket * p.price
+        total_price += p.price_sum
         products.append(p)
-    return render(request, 'shop/basket.html', {'products': products})
+    return render(request, 'shop/basket.html', {'products': products, 'total_price': total_price})
 
 
 def add_to_basket(request, product_id):
@@ -58,6 +60,27 @@ def add_to_basket(request, product_id):
         return HttpResponseRedirect(reverse('shop:detail', args=(product_id,)))
     else:
         return HttpResponseRedirect('/')
+
+
+def update_basket(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    size = request.POST['basket-update']
+    for bs in request.session['basket']:
+        if int(bs['item']) == product_id:
+            if int(size) > product.quantity:
+                size = product.quantity
+            elif int(size) < 0:
+                size = 0
+            size_diff = int(size) - int(bs['amount'])
+            bs['amount'] = int(size)
+
+            if int(size) == 0:
+                request.session['basket'].remove(bs)
+
+            request.session['basket_size'] = int(size_diff) + int(request.session['basket_size'])
+            request.session.modified = True
+
+    return HttpResponseRedirect(reverse('shop:basket'))
 
 
 def clear_basket(request):

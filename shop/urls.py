@@ -8,5 +8,6 @@ urlpatterns = [
     path('detail/<int:product_id>', views.detail, name='detail'),
     path('basket', views.basket, name='basket'),
     path('basket/add/<int:product_id>', views.add_to_basket, name='add-to-basket'),
+    path('basket/update/<int:product_id>', views.update_basket, name='update-basket'),
     path('basket/clear', views.clear_basket, name='clear-basket')
 ]
