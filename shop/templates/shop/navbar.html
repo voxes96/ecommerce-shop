@@ -1,0 +1,6 @@
+<nav class="navbar navbar-expand justify-content-between navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'shop:index' %}">Sklep</a>
+    <a class="navbar-brand" href="{% url 'shop:basket' %}">
+        Koszyk {% if request.session.basket_size %} <span class="badge badge-light">{{request.session.basket_size}}</span>{% endif %}
+    </a>
+</nav>
