@@ -1,7 +1,9 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from .models import Product
+from django.utils import timezone
+
+from .models import Product, Order
 import logging
 
 logger = logging.getLogger(__name__)
@@ -79,6 +81,26 @@ def update_basket(request, product_id):
 
             request.session['basket_size'] = int(size_diff) + int(request.session['basket_size'])
             request.session.modified = True
+
+    return HttpResponseRedirect(reverse('shop:basket'))
+
+
+def buy_basket(request):
+    for bs in request.session['basket']:
+        product = get_object_or_404(Product, pk=int(bs['item']))
+        size = int(bs['amount'])
+        price = size * product.price
+
+        product.quantity -= size
+        product.save()
+
+        o = Order(product=product, order_date=timezone.now(), quantity=size, totalPrice=price)
+        o.save()
+
+    if 'basket' in request.session:
+        request.session['basket'] = []
+    if 'basket_size' in request.session:
+        request.session['basket_size'] = 0
 
     return HttpResponseRedirect(reverse('shop:basket'))
 
