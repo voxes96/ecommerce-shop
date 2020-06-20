@@ -20,6 +20,14 @@
                             <div><strong>Zostało sztuk:</strong> {{ product.quantity }}</div>
                         </div>
                     </div>
+                    <form method="post" action="{% url 'shop:add-to-basket' product.id %}">
+                        {% csrf_token %}
+                        <div class="form-group col-sm-5">
+                            <label class="col-form-label" for="Quantity">Ile sztuk chcesz kupić: </label>
+                            <input class="form-control" type="number" id="Quantity" name="basket-quantity" min="0" max="{{ product.quantity }}">
+                            <input class="btn btn-success my-2" type="submit" value="Do koszyka">
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
