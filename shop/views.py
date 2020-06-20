@@ -20,7 +20,13 @@ def detail(request, product_id):
 
 
 def basket(request):
-    return render(request, 'shop/basket.html')
+    products = []
+    for bs in request.session['basket']:
+        p = get_object_or_404(Product, pk=int(bs['item']))
+        p.quantity = int(bs['amount'])
+        p.price_sum = p.quantity * p.price
+        products.append(p)
+    return render(request, 'shop/basket.html', {'products': products})
 
 
 def add_to_basket(request, product_id):
@@ -53,3 +59,10 @@ def add_to_basket(request, product_id):
     else:
         return HttpResponseRedirect('/')
 
+
+def clear_basket(request):
+    if 'basket' in request.session:
+        request.session['basket'] = []
+    if 'basket_size' in request.session:
+        request.session['basket_size'] = 0
+    return HttpResponseRedirect(reverse('shop:basket'))
