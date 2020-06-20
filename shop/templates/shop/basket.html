@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>Sklep</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="{% static 'shop/style.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'shop/bootstrap.min.css' %}">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand justify-content-between navbar-dark bg-primary">
+            <a class="navbar-brand" href="{% url 'shop:index' %}">Sklep</a>
+            <a class="navbar-brand" href="{% url 'shop:basket' %}">
+                Koszyk {% if request.session.basket_size %} <span class="badge badge-light">{{request.session.basket_size}}</span>{% endif %}
+            </a>
+        </nav>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-11" style="background: lightgrey">
+                    Przedmioty w koszyku:
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="{% static 'shop/bootstrap.min.js' %}"></script>
+</html>

@@ -8,6 +8,12 @@
         <link rel="stylesheet" type="text/css" href="{% static 'shop/bootstrap.min.css' %}">
     </head>
     <body>
+        <nav class="navbar navbar-expand justify-content-between navbar-dark bg-primary">
+            <a class="navbar-brand" href="{% url 'shop:index' %}">Sklep</a>
+            <a class="navbar-brand" href="{% url 'shop:basket' %}">
+                Koszyk {% if request.session.basket_size %} <span class="badge badge-light">{{request.session.basket_size}}</span>{% endif %}
+            </a>
+        </nav>
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-11" style="background: lightgrey">
@@ -24,7 +30,7 @@
                         {% csrf_token %}
                         <div class="form-group col-sm-5">
                             <label class="col-form-label" for="Quantity">Ile sztuk chcesz kupić: </label>
-                            <input class="form-control" type="number" id="Quantity" name="basket-quantity" min="0" max="{{ product.quantity }}">
+                            <input class="form-control" type="number" id="Quantity" name="basket-quantity" min="0" max="{{ product.quantity }}" required>
                             <input class="btn btn-success my-2" type="submit" value="Do koszyka">
                         </div>
                     </form>

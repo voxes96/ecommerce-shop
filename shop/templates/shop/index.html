@@ -8,10 +8,16 @@
         <link rel="stylesheet" type="text/css" href="{% static 'shop/bootstrap.min.css' %}">
     </head>
     <body>
+        <nav class="navbar navbar-expand justify-content-between navbar-dark bg-primary">
+            <a class="navbar-brand" href="{% url 'shop:index' %}">Sklep</a>
+            <a class="navbar-brand" href="{% url 'shop:basket' %}">
+                Koszyk {% if request.session.basket_size %} <span class="badge badge-light">{{request.session.basket_size}}</span>{% endif %}
+            </a>
+        </nav>
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-11" style="background: lightgrey">
-                    <div class="p-3 my-2 text-center text-white bg-primary rounded">
+                    <div class="p-2 my-4 text-center text-white bg-primary rounded">
                         <h1>Lista produktów:</h1>
                     </div>
                     {% if products_list %}
@@ -28,13 +34,18 @@
                         </a>
                         {% endfor %}
                     {% else %}
-                        <div class="p-3 my-2 text-center text-white bg-danger rounded">
-                            <h2>W tej chwili nie ma żadnych produktów do kupienia</h2>
+                        <div class="p-3 my-4 text-center text-white bg-danger rounded">
+                            <h4>W tej chwili nie ma żadnych produktów do kupienia</h4>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+<!--        {% for b in request.session.basket %}-->
+<!--            {{ b.item }} {{ b.amount }}<br>-->
+<!--        {% endfor %}-->
+<!--        {% if request.session.basket_size %} basket_size= {{request.session.basket_size}} {% endif %}-->
+<!--    {{ request.session.basket }}-->
     </body>
     <script src="{% static 'shop/bootstrap.min.js' %}"></script>
 </html>
