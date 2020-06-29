@@ -121,15 +121,15 @@ def buy_basket(request):
             "lastName": "Liszka",
             "language": "pl"
         },
-        "settings":{
-            "invoiceDisabled":"true"
+        "settings": {
+            "invoiceDisabled": "true"
         },
         "products": products
     }
     r = requests.post('https://secure.payu.com/api/v2_1/orders', headers=header, json=body)
 
     if str(r.status_code).startswith('2'):
-        # save_transaction(request)
+        save_transaction(request)
         return render(request, 'shop/buy.html', {'redirect_url': r.url})
     else:
         return render(request, 'shop/error.html')
