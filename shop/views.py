@@ -1,9 +1,11 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+import requests, json
+from .utils import PAYMENT_CONFIG
 
-from .models import Product, Order
+from .models import Product, Order, Transaction
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,12 +26,13 @@ def detail(request, product_id):
 def basket(request):
     products = []
     total_price = 0
-    for bs in request.session['basket']:
-        p = get_object_or_404(Product, pk=int(bs['item']))
-        p.basket = int(bs['amount'])
-        p.price_sum = p.basket * p.price
-        total_price += p.price_sum
-        products.append(p)
+    if 'basket' in request.session:
+        for bs in request.session['basket']:
+            p = get_object_or_404(Product, pk=int(bs['item']))
+            p.basket = int(bs['amount'])
+            p.price_sum = p.basket * p.price
+            total_price += p.price_sum
+            products.append(p)
     return render(request, 'shop/basket.html', {'products': products, 'total_price': total_price})
 
 
@@ -86,23 +89,82 @@ def update_basket(request, product_id):
 
 
 def buy_basket(request):
+    products = []
+    price_total = 0
     for bs in request.session['basket']:
         product = get_object_or_404(Product, pk=int(bs['item']))
         size = int(bs['amount'])
         price = size * product.price
+        price_total += price
+        products.append({
+            'name': product.name,
+            'unitPrice': str(int(product.price * 100)),
+            'quantity': str(int(size))
+        })
+    price_total = int(price_total * 100)
 
-        product.quantity -= size
-        product.save()
+    header = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer 3e5cac39-7e38-4139-8fd6-30adc06a61bd'
+    }
+    body = {
+        "notifyUrl": "https://ecommerceshop.free.beeceptor.com/notify",
+        "customerIp": "127.0.0.1",
+        "merchantPosId": "145227",
+        "description": "Przykladowe zamowienie na potrzeby projektu",
+        "currencyCode": "PLN",
+        "totalAmount": str(price_total),
+        "buyer": {
+            "email": "szymon.liszka@example.com",
+            "phone": "123123123",
+            "firstName": "Szymon",
+            "lastName": "Liszka",
+            "language": "pl"
+        },
+        "settings":{
+            "invoiceDisabled":"true"
+        },
+        "products": products
+    }
+    r = requests.post('https://secure.payu.com/api/v2_1/orders', headers=header, json=body)
 
-        o = Order(product=product, order_date=timezone.now(), quantity=size, totalPrice=price)
-        o.save()
+    if str(r.status_code).startswith('2'):
+        # save_transaction(request)
+        return render(request, 'shop/buy.html', {'redirect_url': r.url})
+    else:
+        return render(request, 'shop/error.html')
 
-    if 'basket' in request.session:
-        request.session['basket'] = []
-    if 'basket_size' in request.session:
-        request.session['basket_size'] = 0
-
-    return HttpResponseRedirect(reverse('shop:basket'))
+    # nie dziala z powodu nie dzialajacej strony - prace konserwacyjne
+    # r = requests.post('https://secure.snd.payu.com/pl/standard/user/oauth/authorize', params=PAYMENT_CONFIG['OAuth'])
+    #
+    # if str(r.status_code).startswith('2'):
+    #     logger.info(r.request)
+    #     logger.info(r.json())
+    #     logger.info(r.json()['access_token'])
+    #     logger.info(PAYMENT_CONFIG['loging'])
+    #
+    #     header = {
+    #         "Content-Type": PAYMENT_CONFIG['Content-Type'],
+    #         "Authorization": PAYMENT_CONFIG['Authorization'] + ' ' + r.json()['access_token']
+    #     }
+    #     body = {
+    #         "notifyUrl": PAYMENT_CONFIG['notifyUrl'],
+    #         "customerIp": PAYMENT_CONFIG['customerIp'],
+    #         "merchantPosId": PAYMENT_CONFIG['merchantPosId'],
+    #         "description": "Zakupy za pomoca przykladowego sklepu PayU",
+    #         "currencyCode": PAYMENT_CONFIG['currencyCode'],
+    #         "totalAmount": str(price_total),
+    #         "settings": PAYMENT_CONFIG['settings'],
+    #         "products": products
+    #     }
+    #
+    #     r = requests.post('https://secure.snd.payu.com/api/v2_1/orders', headers=header, json=body)
+    #
+    #     save_transaction(request)
+    #
+    #     return render(request, 'shop/buy.html', {'redirect_url': r.url})
+    # else:
+    #     return render(request, 'shop/error.html')
 
 
 def clear_basket(request):
@@ -111,3 +173,29 @@ def clear_basket(request):
     if 'basket_size' in request.session:
         request.session['basket_size'] = 0
     return HttpResponseRedirect(reverse('shop:basket'))
+
+
+def save_transaction(req):
+    transaction = Transaction(order_date=timezone.now(), price=0)
+    transaction.save()
+
+    price_total = 0
+    for bs in req.session['basket']:
+        product = get_object_or_404(Product, pk=int(bs['item']))
+        size = int(bs['amount'])
+        price = size * product.price
+        price_total += price
+
+        product.quantity -= size
+        product.save()
+
+        o = Order(product=product, quantity=size, transaction=transaction)
+        o.save()
+
+    transaction.price = price_total
+    transaction.save()
+
+    if 'basket' in req.session:
+        req.session['basket'] = []
+    if 'basket_size' in req.session:
+        req.session['basket_size'] = 0
